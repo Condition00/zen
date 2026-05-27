@@ -223,8 +223,7 @@ void editorRefreshScreen() {
   snprintf(buf, sizeof(buf), "\x1b[%d;%dH", E.cy + 1, E.cx + 1);
   abAppend(&ab, buf, strlen(buf));
 
-  abAppend(&ab, "\x1b[?25h", 6); // same thing hidihng
-  abAppend(&ab, "\x1b[H", 3);
+  abAppend(&ab, "\x1b[?25h", 6); // show cursor
 
   write(STDOUT_FILENO, ab.b, ab.len);
   abFree(&ab);
@@ -234,22 +233,22 @@ void editorRefreshScreen() {
 
 void editorMoveCursor(int key) {
   switch (key) {
-  case 'ARROW_LEFT':
+  case ARROW_LEFT:
     if (E.cx != 0) {
       E.cx--;
     }
     break;
-  case 'ARROW_RIGHT':
+  case ARROW_RIGHT:
     if (E.cx != E.screencols - 1) {
       E.cx++;
     }
     break;
-  case 'ARROW_UP':
+  case ARROW_UP:
     if (E.cy != 0) {
       E.cy--;
     }
     break;
-  case 'ARROW_DOWN':
+  case ARROW_DOWN:
     if (E.cy != E.screenrows - 1) {
       E.cy++;
     }
@@ -267,10 +266,16 @@ void editorProcessKeypress() {
     exit(0);
     break;
 
-  case 'ARROW_UP':
-  case 'ARROW_DOWN':
-  case 'ARROW_LEFT':
-  case 'ARROW_RIGHT':
+  case PAGE_UP:
+  case PAGE_DOWN: {
+    int times = E.screenrows;
+    while (times--)
+      editorMoveCursor(c == PAGE_UP ? ARROW_UP : ARROW_DOWN);
+  } break;
+  case ARROW_UP:
+  case ARROW_DOWN:
+  case ARROW_LEFT:
+  case ARROW_RIGHT:
     editorMoveCursor(c);
     break;
   }
